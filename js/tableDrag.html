@@ -1,0 +1,1299 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="jq.js"></script>
+    <script src="jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="jquery-ui.min.css">
+</head>
+<style>
+    /* nestedTable common */
+    .nestedTable {
+        font-size: 12px;
+        line-height: 16px;
+        color: #666;
+        border-left: 1px #ccc solid;
+        border-right: 1px #ccc solid;
+    }
+    .nestedTable * {
+        box-sizing: border-box;
+    }
+    .nestedTable a {
+        color: rgb(0, 112, 204);
+        text-decoration: none;
+    }
+    .nestedTable a:hover {
+        text-decoration: underline;
+    }
+    .nestedTable-header-level1,
+    .nestedTable-header-level2,
+    .nestedTable-header-level3,
+    .nestedTable-body-level1,
+    .nestedTable-body-level2,
+    .nestedTable-body-level3 .nestedTable-body-level-list {
+        display: flex;
+    }
+    .nestedTable-header-item, .nestedTable-body-item {
+        flex-grow: 1;
+        flex-shrink: 0;
+        padding: 0 5px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .nestedTable-header-item {
+        position: relative;
+    }
+    .nestedTable-header-item .width-drag-pointer {
+        position: absolute;
+        top: 0;
+        right: -4px;
+        width: 8px;
+        height: 100%;
+        z-index: 1000000;
+        cursor: col-resize;
+    }
+    .nestedTable-header-item .width-drag-pointer:hover {
+        background-color: #999;
+    }
+    .nestedTable-header {
+        background: #eee;
+    }
+    .nestedTable-header header {
+        display: none;
+        padding: 0;
+        border-top: 1px #ccc solid;
+        border-bottom: 1px #ccc solid;
+    }
+    .nestedTable-body-level1, .nestedTable-body-level2 {
+        display: flex;
+        padding: 0;
+        border-top: 1px #ccc solid;
+        border-bottom: 1px #ccc solid;
+    }
+    .nestedTable-header-level1 > div,
+    .nestedTable-header-level2 > div,
+    .nestedTable-header-level3 > div,
+    .nestedTable-body-level1 > div, 
+    .nestedTable-body-level2 > div {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+    .nestedTable-body-level3 .nestedTable-body-level-list {
+        padding: 0;
+        padding-left: 7px;
+        border-bottom: 1px #eee solid;
+        background-color: rgb(251, 253, 254);
+    }
+    .nestedTable-body-level3 .nestedTable-body-level-list > div {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+    .nestedTable-body-level3 .nestedTable-body-level-list:nth-last-child(1) {
+        border-bottom: none;
+    }
+    .nestedTable-body-level2 {
+        margin-left: 14px;
+        border-left: 1px #ccc solid;
+        border-top: none;
+    }
+    .nestedTable-body-level3 {
+        display: none;
+        margin-left: 14px;
+        border-bottom: 1px #ccc solid;
+    }
+    .nestedTable-body-level-wrap .nestedTable-body-level3:nth-last-child(1) {
+        position: relative;
+        margin-left: 0;
+    }
+    .nestedTable-has-child.nestedTable-body-level-wrap .nestedTable-body-level3:nth-last-child(1)::before {
+        content: ' ';
+        width: 1px;
+        height: 100%;
+        position: absolute;
+        left: 3px;
+        top: -22px;
+        z-index: 100;
+        background-color: #fff;
+    }
+    .nestedTable-header .nestedTable-header-level1 {
+        display: flex;
+    }
+    .nestedTable-body-level1 {
+        margin-top: -1px;
+    }
+
+    /* aside tree */
+    .aside-tree .nestedTable-body-level-wrap .nestedTable-body-level3:nth-last-child(1) .nestedTable-body-level-list {
+        margin-left: 14px;
+    }
+    .aside-tree.nestedTable {
+        border-left: none;
+        border-right: none;
+    }
+    .aside-tree .nestedTable-body-level1::before {
+        content: ' ';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 7px;
+        height: 100%;
+        background-color: #3289c7;
+    }
+    .aside-tree .nestedTable-header .nestedTable-header-level1 {
+        padding-left: 7px;
+    }
+    .aside-tree .nestedTable-body-level1 {
+        position: relative;
+        padding-left: 7px;
+    }
+    .aside-tree .nestedTable-body-level-wrap {
+        position: relative;
+    }
+    .aside-tree .nestedTable-has-child.nestedTable-body-level-wrap::before {
+        content: ' ';
+        width: 1px;
+        height: calc(100% - 23px);
+        background-color: #3289c7;
+        position: absolute;
+        left: 3px;
+        top: 1px;
+        z-index: 10;
+    }
+    .aside-tree .nestedTable-body-level-wrap .nestedTable-body-level2 {
+        position: relative;
+    }
+    .aside-tree .nestedTable-body-level-wrap .nestedTable-body-level2::before {
+        content: ' ';
+        width: 10px;
+        height: 1px;
+        background-color: #3289c7;
+        position: absolute;
+        left: -11px;
+        top: 22px;
+    }
+    .aside-tree .nestedTable-body-level2 .nestedTable-body-item:first-child {
+        margin-left: -7px;
+        padding-left: 14px;
+    }
+    .nestedTable-header .nestedTable-header-level3 {
+        padding-left: 7px;
+    }
+
+    /* move */
+    .nestedTable-header-item { cursor: move; }
+    .moveDivBg { 
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 10000;
+        cursor: move;
+        -webkit-user-select: none;
+    }
+    .moveDiv { 
+        border: 1px dotted #ccc;
+        font-size: 12px;
+        background:#eee;
+        position: fixed;
+        z-index: 100000;
+    }
+        
+    /* nestedTable only the page */
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(1),
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(1) {
+        width: 150px;
+    }
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(2),
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(2) {
+        width: 100px;
+    }
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(3),
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(3) {
+        width: 70px;
+    }
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(3) > div,
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(3) > div {
+        text-align: right;
+    }
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(4) > div,
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(4) > div {
+        text-align: right;
+        padding-right: 10%;
+    }
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(4),
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(4) {
+        width: 80px;
+    }
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(5),
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(5) {
+        width: 90px;
+    }
+    .nestedTable-header-level1 .nestedTable-header-item:nth-of-type(6),
+    .nestedTable-body-level1 .nestedTable-body-item:nth-of-type(6) {
+        flex-grow: 0;
+        width: 80px;
+    }
+
+    /* nestedTable only the page */
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(1),
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(1) {
+        width: 150px;
+    }
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(2),
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(2) {
+        width: 100px;
+    }
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(3),
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(3) {
+        width: 70px;
+    }
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(3) > div,
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(3) > div {
+        text-align: right;
+    }
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(4) > div,
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(4) > div {
+        text-align: right;
+        padding-right: 10%;
+    }
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(4),
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(4) {
+        width: 80px;
+    }
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(5),
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(5) {
+        width: 90px;
+    }
+    .nestedTable-header-level2 .nestedTable-header-item:nth-of-type(6),
+    .nestedTable-body-level2 .nestedTable-body-item:nth-of-type(6) {
+        flex-grow: 0;
+        width: 80px;
+    }
+
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(1),
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(1) {
+        width: 150px;
+    }
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(2),
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(2) {
+        width: 100px;
+    }
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(3),
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(3) {
+        width: 70px;
+    }
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(3) > div,
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(3) > div {
+        text-align: left;
+    }
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(4) > div,
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(4) > div {
+        text-align: left;
+        padding-right: 10%;
+    }
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(4),
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(4) {
+        width: 80px;
+    }
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(5),
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(5) {
+        width: 90px;
+    }
+    .nestedTable-header-level3 .nestedTable-header-item:nth-of-type(6),
+    .nestedTable-body-level3 .nestedTable-body-item:nth-of-type(6) {
+        flex-grow: 0;
+        width: 80px;
+    }
+    
+</style>
+<body>
+    <!-- single table -->
+    <article id="singleTable" class="nestedTable" style="margin-top: 24px;">
+        <section class="nestedTable-header">
+            <header class="nestedTable-header-level1">
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">订单号11</div>
+                        <div class="nestedTable-line">客户名称</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">渠道/快递/是否代发22</div>
+                        <div class="nestedTable-line">发货仓库</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">付款状态33</div>
+                        <div class="nestedTable-line">已付金额</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">结算状态44</div>
+                        <div class="nestedTable-line">结算日</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">制单人55</div>
+                        <div class="nestedTable-line">创建时间</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">操作66</div>
+                    </div>
+                </div>
+            </header>
+        </section>
+        <section class="nestedTable-body">
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">11上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>22期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">33已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">44已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">55小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删666除</span>
+                    </div>
+                </div>
+            </article>
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">11上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>22期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">33已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">44已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">55小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删666除</span>
+                    </div>
+                </div>
+            </article>
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">11上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>22期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">33已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">44已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">55小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删666除</span>
+                    </div>
+                </div>
+            </article>
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">11上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>22期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">33已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">44已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">55小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删666除</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </article>
+
+    <!-- has aside tree -->
+    <article id="tableTest1" class="nestedTable aside-tree" style="margin-top: 24px;">
+        <section class="nestedTable-header">
+            <header class="nestedTable-header-level1">
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">订单号11</div>
+                        <div class="nestedTable-line">客户名称</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">渠道/快递/是否代发22</div>
+                        <div class="nestedTable-line">发货仓库</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">付款状态33</div>
+                        <div class="nestedTable-line">已付金额</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">结算状态44</div>
+                        <div class="nestedTable-line">结算日</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">制单人55</div>
+                        <div class="nestedTable-line">创建时间</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">操作66</div>
+                    </div>
+                </div>
+            </header>
+            <header class="nestedTable-header-level2"></header>
+            <header class="nestedTable-header-level3">
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">产品名称</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">订货号</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">型号</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">市场价</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">返积分</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">操作</div></div></div>
+            </header>
+        </section>
+        <section class="nestedTable-body">
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+            </article>
+            <article class="nestedTable-body-level-wrap nestedTable-has-child">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level2">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">201912345885555335</a>
+                        </div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level2">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">201912345885555512</a>
+                        </div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+            </article>
+            <article class="nestedTable-body-level-wrap nestedTable-has-child">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">11天</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level2">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">201912345885555335</a>
+                        </div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level2">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">201912345885555512</a>
+                        </div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </article>
+
+    <!-- no aside tree -->
+    <article id="tableTest2" class="nestedTable" style="margin-top: 24px;">
+        <section class="nestedTable-header">
+            <header class="nestedTable-header-level1">
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">订单号11</div>
+                        <div class="nestedTable-line">客户名称</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">渠道/快递/是否代发22</div>
+                        <div class="nestedTable-line">发货仓库</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">付款状态33</div>
+                        <div class="nestedTable-line">已付金额</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">结算状态44</div>
+                        <div class="nestedTable-line">结算日</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">制单人55</div>
+                        <div class="nestedTable-line">创建时间</div>
+                    </div>
+                </div>
+                <div class="nestedTable-header-item">
+                    <div class="nestedTable-line-wrap">
+                        <div class="nestedTable-line">操作66</div>
+                    </div>
+                </div>
+            </header>
+            <header class="nestedTable-header-level2"></header>
+            <header class="nestedTable-header-level3">
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">产品名称</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">订货号</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">型号</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">市场价</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">返积分</div></div></div>
+                <div class="nestedTable-header-item"><div class="nestedTable-line-wrap"><div class="nestedTable-line">操作</div></div></div>
+            </header>
+        </section>
+        <section class="nestedTable-body">
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+            </article>
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">￥23.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+            </article>
+            <article class="nestedTable-body-level-wrap">
+                <div class="nestedTable-body-level1">
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <a href="##">2019123458855555</a>
+                        </div>
+                        <div class="nestedTable-line">上海加成优先责任公司</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">
+                            <span>期货</span> | <span>顺丰到付</span> | <span>代发</span>
+                        </div>
+                        <div class="nestedTable-line">上海市150号仓库</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已支付</div>
+                        <div class="nestedTable-line">￥11.22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">已经结算</div>
+                        <div class="nestedTable-line">11天</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <div class="nestedTable-line">小李</div>
+                        <div class="nestedTable-line">2019-11-22</div>
+                    </div>
+                    <div class="nestedTable-body-item">
+                        <span>删除</span>
+                    </div>
+                </div>
+                <div class="nestedTable-body-level3">
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                    <div class="nestedTable-body-level-list">
+                        <div class="nestedTable-body-item">ABL432模块导轨开关</div>
+                        <div class="nestedTable-body-item">A9F18103</div>
+                        <div class="nestedTable-body-item">IC659 1P 10A</div>
+                        <div class="nestedTable-body-item">￥11.22</div>
+                        <div class="nestedTable-body-item">55023</div>
+                        <div class="nestedTable-body-item"><span>删除</span></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </article>
+    
+    <script type="text/javascript">
+        var tableExtend = {};
+
+        // 列拖拽
+        tableExtend.initColDrag = function(obj) {
+            function dragTable() {
+                this.wrap = obj.ele;
+                this.clickEv = null;
+                this.pointHeaderX = 0;
+                this.disX = 0;
+                this.lanX = 0;
+                this.COLOR = '#3289c7';
+            }
+
+            dragTable.prototype.init = function() {
+                this.$moveDiv = $('<div class="moveDiv"></div>');
+                this.$moveDivBg = $('<div class="moveDivBg"></div>');
+                this.event();
+            }
+
+            dragTable.prototype.event = function() {
+                var that = this;
+
+                $(document).on('mousedown', this.wrap + ' .nestedTable-line-wrap', function(e) {
+                    that.clickEv = this;
+                    that.mousedown(this, e);
+                    that.$moveDivBg.show();
+                });
+
+                $(document).on('mouseup', this.wrap + ' .nestedTable-line-wrap, .moveDiv, .moveDivBg', function(e) {
+                    that.mouseup(this, e);
+                });
+            }
+
+            dragTable.prototype.mousedown = function(that, e) {
+                $('body').append(this.$moveDiv, this.$moveDivBg);
+                this.$moveDiv.html($(that).html()).hide();
+                this.pointHeaderX = e.pageX - $(that).offset().left;
+                var pointPageX = e.pageX;
+                var that = this;
+                $(document).on('mousemove', function(ev) {
+                    that.mousemove(that, e.pageX, ev);
+                    ev.stopPropagation();
+                });
+            }
+
+            dragTable.prototype.mousemove = function(that, pointPageX, ev) {
+                this.disX = ev.pageX - pointPageX;
+                this.lanX = ev.pageX;
+                this.$moveDiv.css({top: ev.pageY, left: ev.pageX});
+                this.getCurrentCol('move');
+                Math.abs(this.disX) > 4 ? this.$moveDiv.show() : this.$moveDiv.hide();
+            }
+
+            dragTable.prototype.mouseup = function() {
+                $(document).unbind('mousemove');
+                this.resetTable();
+            }
+
+            dragTable.prototype.getCurrentCol = function (type) {
+                var that = this;
+                var parentIndex = $(this.clickEv).parent().parent().index();
+                var newParentIndex = parentIndex + 1;
+                console.log('newParentIndex', newParentIndex);
+                $(this.wrap + ' .nestedTable-header-level' + newParentIndex + ' .nestedTable-line-wrap').each(function (index, item) {
+                    var l = $(item).offset().left;
+                    var r = $(item).offset().left + $(item).width();
+
+                    if (that.lanX > l && that.lanX < r) {
+                        that.showBorder();
+                        if (that.disX > 4) { // 右
+                            that.showBorder(parentIndex, index, 'right', that.COLOR);
+                            type == 'up' ? that.setColHtml(index, 'after', parentIndex) : '';
+                        }
+                        if (that.disX < -4) { // 左边
+                            that.showBorder(parentIndex, index, 'left', that.COLOR);
+                            type == 'up' ? that.setColHtml(index, 'before', parentIndex) : '';
+                        }
+                    } else {
+                        // that.showBorder();
+                    }
+                })
+            }
+
+            dragTable.prototype.setColHtml = function (newIndex, type, parentIndex) {
+                var oldIndex = $(this.clickEv).parent().index();
+                var newParentIndex = parentIndex + 1;
+                var $head = $(this.wrap + ' .nestedTable-header-level' + newParentIndex + ' .nestedTable-header-item').eq(oldIndex);
+
+                $(this.wrap + ' .nestedTable-header-level' + newParentIndex + ' .nestedTable-header-item').eq(newIndex)[type]($head.clone());
+                $head.remove();
+                
+                if (newParentIndex === 3) {
+                    $(this.wrap + ' .nestedTable-body-level' + newParentIndex).each(function(i, e) {
+                        $(e).find('.nestedTable-body-level-list').each(function(ii, ee) {
+                            var $bodyCol = $(ee).find('.nestedTable-body-item').eq(oldIndex);
+                            $(ee).find('.nestedTable-body-item').eq(newIndex)[type]($bodyCol.clone());
+                            $bodyCol.remove();
+                        });
+                    });
+                } else {
+                    $(this.wrap + ' .nestedTable-body-level' + newParentIndex).each(function(i, e) {
+                        var $bodyCol = $(e).find('.nestedTable-body-item').eq(oldIndex);
+                        $(e).find('.nestedTable-body-item').eq(newIndex)[type]($bodyCol.clone());
+                        $bodyCol.remove();
+                    });
+                }
+            }
+
+            dragTable.prototype.showBorder = function (parentIndex, index, direction, color) {
+                if (color) {
+                    var newIndex = parentIndex + 1;
+                    $(this.wrap + ' .nestedTable-header').eq(parentIndex).find('.nestedTable-header-item').eq(index)
+                            .css('border-' + direction, '2px ' + color + ' solid');
+                    $(this.wrap + ' .nestedTable-body-level' + newIndex).each(function(i, e) {
+                        $(e).find('.nestedTable-body-item').eq(index).css('border-' + direction, '2px ' + color + ' solid');
+                    });
+                } else {
+                    $(this.wrap + ' .nestedTable-header-item').css({
+                        'border-left': 'none',
+                        'border-right': 'none'
+                    });
+                    $(this.wrap + ' .nestedTable-body-item').css({
+                        'border-left': 'none',
+                        'border-right': 'none'
+                    });
+                }
+            }
+
+            dragTable.prototype.resetTable = function () {
+                this.$moveDiv.remove();
+                this.$moveDivBg.remove();
+                this.getCurrentCol('up');
+                this.lanX = 0;
+                this.disX = 0;
+                this.showBorder();
+            }
+
+            var box = new dragTable();
+            box.init();
+        };
+        
+        // 宽度拖拽
+        tableExtend.widthDrag = function(obj) {
+            function WidthControl() {
+                this.wrap = obj.ele;
+            }
+
+            WidthControl.prototype.events = function() {
+                var that = this;
+                $(document).on('mousedown',  $(this.wrap + ' .width-drag-pointer'), function(e) {
+                    console.log(22);
+                    e.stopPropagation();
+                });
+
+                $(document).on('mouseup',  $(this.wrap + ' .width-drag-pointer'), function(e) {
+                    console.log(333);
+                    e.stopPropagation();
+                })
+            }
+
+            WidthControl.prototype.init = function () {
+                this.addDragEle();
+                this.events();
+            }
+
+            WidthControl.prototype.addDragEle = function() {
+                $(this.wrap + ' .nestedTable-header-item').append('<div class="width-drag-pointer"></div>');
+            }
+
+           
+
+            var box = new WidthControl();
+            box.init();
+        }
+        
+        $(function() {
+            tableExtend.widthDrag({ ele: '#singleTable' });
+
+
+
+            tableExtend.initColDrag({ ele: '#singleTable' });
+            tableExtend.initColDrag({ ele: '#tableTest1' });
+            tableExtend.initColDrag({ ele: '#tableTest2' });
+
+            
+            $('.nestedTable-body-level1').on('click', function() {
+                var $this = $(this)
+                var $parent = $this.parent();
+
+                if ($parent.find('.nestedTable-body-level3').is(':hidden')) {
+                    $parent.find('.nestedTable-body-level3').show();
+                    $this.parents('.nestedTable').find('.nestedTable-header-level1').hide();
+                    $this.parents('.nestedTable').find('.nestedTable-header-level3').css('display', 'flex');
+                } else {
+                    $parent.find('.nestedTable-body-level3').hide();
+                    $this.parents('.nestedTable').find('.nestedTable-header-level1').css('display', 'flex');
+                    $this.parents('.nestedTable').find('.nestedTable-header-level3').hide();
+                }
+            })
+        })
+    </script>
+</body>
+</html>
