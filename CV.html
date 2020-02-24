@@ -517,37 +517,37 @@
     <article id="tableTest1" class="nestedTable aside-tree" style="margin-top: 24px;">
         <section class="nestedTable-header">
             <header class="nestedTable-header-level1">
-                <div class="nestedTable-header-item">
+                <div class="nestedTable-header-item" data-width="350">
                     <div class="nestedTable-line-wrap">
                         <div class="nestedTable-line" data-unchecked="true">订单号11</div>
                         <div class="nestedTable-line">客户名称</div>
                     </div>
                 </div>
-                <div class="nestedTable-header-item">
+                <div class="nestedTable-header-item" data-width="100">
                     <div class="nestedTable-line-wrap">
                         <div class="nestedTable-line" data-unchecked="true">渠道/快递/是否代发22</div>
                         <div class="nestedTable-line">发货仓库</div>
                     </div>
                 </div>
-                <div class="nestedTable-header-item">
+                <div class="nestedTable-header-item" data-width="70">
                     <div class="nestedTable-line-wrap">
                         <div class="nestedTable-line">付款状态33</div>
                         <div class="nestedTable-line">已付金额</div>
                     </div>
                 </div>
-                <div class="nestedTable-header-item">
+                <div class="nestedTable-header-item" data-width="80">
                     <div class="nestedTable-line-wrap">
                         <div class="nestedTable-line">结算状态44</div>
                         <div class="nestedTable-line">结算日</div>
                     </div>
                 </div>
-                <div class="nestedTable-header-item">
+                <div class="nestedTable-header-item" data-width="90">
                     <div class="nestedTable-line-wrap">
                         <div class="nestedTable-line">制单人55</div>
                         <div class="nestedTable-line">创建时间</div>
                     </div>
                 </div>
-                <div class="nestedTable-header-item">
+                <div class="nestedTable-header-item" data-width="80">
                     <div class="nestedTable-line-wrap">
                         <div class="nestedTable-line">操作66</div>
                     </div>
@@ -1322,7 +1322,6 @@
                     allGrow += parseFloat($(item).css('flex-grow'));
                 });
                 this.widthPercent = allGrow / (allGrow - parseFloat(theGrow));
-                console.log('this.widthPercent', this.widthPercent);
             }
 
             WidthControl.prototype.init = function () {
@@ -1421,14 +1420,27 @@
 
                             customStyle += obj.ele + ' header:nth-of-type(' + (index + 1) + ')' + ' .nestedTable-header-item:nth-of-type(' + (i + 1) + ')' +
                                     ' .nestedTable-line:nth-child(' + (ii + 1) + ') { display: ' + (dataUnchecked ? 'none' : 'block') + '} \n';
+                            customStyle += obj.ele + ' .nestedTable-body-level-wrap > div:nth-of-type(' + (index + 1) + ')' + 
+                                    ' .nestedTable-body-item:nth-of-type(' + (i + 1) + ')' +
+                                    ' .nestedTable-line:nth-child(' + (ii + 1) + ') { display: ' + (dataUnchecked ? 'none' : 'block') + '} \n';
+
+                            tableExtend.defaultJson[index][i]['list'][ii]['customUnchecked'] = dataUnchecked ? true : '';
+                                    
+                            if (index === 0) {
+                                // customStyle += obj.ele + ' .nestedTable-body-level-wrap > div:nth-of-type(' + (2) + ')' + 
+                                //         ' .nestedTable-body-item:nth-of-type(' + (i + 1) + ')' +
+                                //         ' .nestedTable-line:nth-child(' + (ii + 1) + ') { display: ' + (dataUnchecked ? 'none' : 'block') + '} \n';
+                            }
                         });
                     });
                 });
+
                 $('#J_customColStyle').html(customStyle);
             }
             getStyleByData();
 
             $('.nest-custom-btn').on('click', function() {
+                customHtml = '';
                 $.each(tableExtend.defaultJson, function(index, obj) {
                     if (obj.length <= 0) {
                         return true;
@@ -1449,7 +1461,7 @@
                     
                     customHtml += '</div></div>';
                 });
-
+                console.log('tableExtend.defaultJson', tableExtend.defaultJson);
                 layer.open({
                     type: 1,
                     area: ['640px', 'auto'],
@@ -1457,7 +1469,8 @@
                     content: '<div class="layui-form"><div id="J_customCol">' + customHtml + '</div></div>',
                     btn: ['确定', '取消'],
                     success: function(layero, index) {
-                        // form.render();
+                        form.render();
+                        console.log(tableExtend.defaultJson);
                     },
                     yes: function(index, layero) {
                         $(layero).find('.custom-col-wrap').each(function(i, e) {
@@ -1575,24 +1588,24 @@
             });
 
             tableExtend.defaultJson = allArray;
-            console.log(allArray)
+            // console.log(allArr/ay)
             $('body').attr('data-array', JSON.stringify(allArray));
         }
 
        
         $(function() {
-            // tableExtend.init('#singleTable', {
-            //     widthDrag: true,
-            //     colDrag: true,
-            //     costomCol: false,
-            //     version: 0000,
-            // });
+            tableExtend.init('#singleTable', {
+                widthDrag: true,
+                colDrag: true,
+                costomCol: false,
+                version: 0000,
+            });
 
             tableExtend.init('#tableTest1', {
                 widthDrag: true,
                 colDrag: true,
                 costomCol: true,
-                version: 1111,
+                version: 2,
             });
 
             // tableExtend.widthDrag({ ele: '#singleTable' });
